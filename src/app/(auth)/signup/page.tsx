@@ -51,16 +51,16 @@ export default function SignupPage() {
 
             // 2. Create Organization
             const slug = formData.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+            const orgId = crypto.randomUUID()
 
-            const { data: orgData, error: orgError } = await supabase
+            const { error: orgError } = await supabase
                 .from('organizations')
                 .insert({
+                    id: orgId,
                     name: formData.companyName,
                     slug: slug,
                     base_currency: 'USD'
                 })
-                .select()
-                .single()
 
             if (orgError) throw orgError
 
@@ -69,7 +69,7 @@ export default function SignupPage() {
                 .from('users')
                 .insert({
                     auth_id: authData.user.id,
-                    organization_id: orgData.id,
+                    organization_id: orgId,
                     email: formData.email,
                     full_name: formData.fullName,
                     role: 'exporter_admin'
@@ -79,11 +79,11 @@ export default function SignupPage() {
 
             // 4. Create Default Expense Templates
             await supabase.from('expense_templates').insert([
-                { organization_id: orgData.id, expense_name: 'Freight (Ocean)', expense_type: 'variable', default_value: 0 },
-                { organization_id: orgData.id, expense_name: 'Customs Clearance', expense_type: 'fixed', default_value: 150 },
-                { organization_id: orgData.id, expense_name: 'Local Transport', expense_type: 'variable', default_value: 0 },
-                { organization_id: orgData.id, expense_name: 'Insurance', expense_type: 'percentage', default_value: 0.5 },
-                { organization_id: orgData.id, expense_name: 'Agent Commission', expense_type: 'fixed', default_value: 0 },
+                { organization_id: orgId, expense_name: 'Freight (Ocean)', expense_type: 'variable', default_value: 0 },
+                { organization_id: orgId, expense_name: 'Customs Clearance', expense_type: 'fixed', default_value: 150 },
+                { organization_id: orgId, expense_name: 'Local Transport', expense_type: 'variable', default_value: 0 },
+                { organization_id: orgId, expense_name: 'Insurance', expense_type: 'percentage', default_value: 0.5 },
+                { organization_id: orgId, expense_name: 'Agent Commission', expense_type: 'fixed', default_value: 0 },
             ])
 
             // Success! Route to dashboard
